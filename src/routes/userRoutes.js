@@ -5,6 +5,7 @@ const router = express.Router();
 
 const authMiddleware = require('../middleware/authMiddleware');
 
+router.post('/album', authMiddleware, upload.array('image'), userController.albumUpload);
 router.post('/register', upload.single('image'), userController.registerUser);
 router.post('/login', userController.loginUser);
 router.post('/refresh-token', userController.refreshToken);

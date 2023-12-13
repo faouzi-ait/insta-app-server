@@ -6,7 +6,7 @@ const authMiddleware = async (req, res, next) => {
   try {
     const token = req.header('Authorization').replace('Bearer ', '');
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
-    
+
     const currentTimestamp = Math.floor(Date.now() / 1000);
     if (decoded.exp && decoded.exp < currentTimestamp) {
       return res.status(403).send({ error: 'Token has expired.' });

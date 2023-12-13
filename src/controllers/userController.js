@@ -4,7 +4,30 @@ const jwt = require('jsonwebtoken');
 const cloudinarySDK = require('cloudinary');
 
 const User = require('../models/user');
+const Contact = require('../models/Contact');
+
 const cloudinary = require('../configuration/cloudinary');
+
+exports.albumUpload = async (req, res) => {
+  
+  try {
+    const user = await User.findOne({ _id: req.user._id });
+    const urls = [];
+
+    for (const file of req.files) {
+      const newPath = await cloudinary.uploads(file.path, 'user-album');
+      urls.push(newPath);
+      fs.unlinkSync(file.path);
+    };
+
+    user.images = user.images.concat(urls);
+    await user.save();
+
+    return res.status(200).json({ success: true, message: 'images uploaded successfully', data: urls});
+  } catch (error) {
+    return res.status(400).send(error);
+  }
+};
 
 exports.registerUser = async (req, res) => {
   try {
@@ -15,15 +38,13 @@ exports.registerUser = async (req, res) => {
       return res.status(400).send({ error: 'Username already exists. Please choose a different username.' });
     }
 
+    // FILE UPLOAD FROM WEB
     if (req.file) {
-      const uploaded = await cloudinary.uploads(
-        req.file.path,
-        'single-upload'
-        );
-      user.photo = uploaded.url;
-      user.publicId = uploaded.id;
-      fs.unlinkSync(req.file.path);
-    }    
+        const uploaded = await cloudinary.uploads(req.file.path, 'single-upload');
+        user.photo = uploaded.url;
+        user.publicId = uploaded.id;
+        fs.unlinkSync(req.file.path);
+      }   
 
     const newUser = new User(user);
     await newUser.save();
@@ -34,9 +55,50 @@ exports.registerUser = async (req, res) => {
   }
 };
 
+exports.createContact = async (req, res) => {
+  try {
+    const contact = { ...req.body };
+    
+    if (req.file) {
+      const uploaded = await cloudinary.uploads(req.file.path, 'single-upload');
+      contact.photo = uploaded.url;
+      contact.publicId = uploaded.id;
+      fs.unlinkSync(req.file.path);
+    }
+    
+    const newContact = new Contact(contact);
+    await User.findByIdAndUpdate(req.user._id, { $push: { contacts: newContact._id } });
+    await newContact.save();
+
+    res.status(201).json({ success: true, message: 'Contact created successfully', newContact });
+  } catch (error) {
+    res.status(400).send(error);
+  }
+};
+
+exports.getAllContacts = async (req, res) => {
+  try {
+    const contacts = await Contact.find();
+    res.status(200).send(contacts);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+};
+
+exports.getUserContacts = async (req, res) => {
+  try {
+    const userContacts = await User.findOne({ _id: req.user._id });
+    const contactList = userContacts.contacts;
+
+    res.status(200).send(contactList);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+};
+
 exports.loginUser = async (req, res) => {
     const { username, password } = req.body;
-    
+
     try {
       // Find the user by username
       const user = await User.findOne({ username });
@@ -55,7 +117,7 @@ exports.loginUser = async (req, res) => {
       }
   
       // Generate JWT tokens
-      const token = jwt.sign({ _id: user._id }, process.env.SECRET_KEY, { expiresIn: '1h' });
+      const token = jwt.sign({ _id: user._id }, process.env.SECRET_KEY, { expiresIn: '180s' });
       const refreshToken = jwt.sign({ _id: user._id }, process.env.SECRET_KEY, { expiresIn: '365d' });
       
       // Save the token to the user's tokens array (for future validation or logout)
@@ -70,24 +132,24 @@ exports.loginUser = async (req, res) => {
 };
 
 exports.refreshToken = (async (req, res, next) => {
-  const { token } = req.body;
+  const { refreshToken } = req.body;
 
-  if (!token) return res.status(400).json({ error: 'Refresh Token is missing' });
+  if (!refreshToken) return res.status(400).json({ error: 'Refresh Token is missing' });
 
-  const decodedToken = jwt.decode(token);
+  const decodedToken = jwt.decode(refreshToken);
   const user = await User.findOne({ _id: decodedToken._id });
 
-  if (!user) if (!token) return res.status(403).json({ error: 'Refresh Token is missing' });
+  if (!user) if (!refreshToken) return res.status(403).json({ error: 'Refresh Token is missing' });
 
   const newToken = jwt.sign({ _id: user._id }, process.env.SECRET_KEY, { expiresIn: '5s' });
-  const refreshToken = jwt.sign({ _id: user._id }, process.env.SECRET_KEY, { expiresIn: '10s' });
+  const newRefreshToken = jwt.sign({ _id: user._id }, process.env.SECRET_KEY, { expiresIn: '90d' });
 
   return res.status(200).json({
       success: true,
       message: 'Here is your new token',
-      userData: user,
+      user,
       token: newToken,
-      refreshToken
+      newRefreshToken
   });
 });
 
