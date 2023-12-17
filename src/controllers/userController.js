@@ -8,6 +8,18 @@ const Contact = require('../models/Contact');
 
 const cloudinary = require('../configuration/cloudinary');
 
+exports.getUserPicture = async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.params.id });
+
+    if (!user) return res.status(400).json({ success: false, message: 'The user was not found' });
+    
+    return res.status(200).json({ photo: user.photo });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'An error has occured', error });
+  }
+};
+
 exports.albumUpload = async (req, res) => {
   
   try {
@@ -117,8 +129,8 @@ exports.loginUser = async (req, res) => {
       }
   
       // Generate JWT tokens
-      const token = jwt.sign({ _id: user._id }, process.env.SECRET_KEY, { expiresIn: '180s' });
-      const refreshToken = jwt.sign({ _id: user._id }, process.env.SECRET_KEY, { expiresIn: '365d' });
+      const token = jwt.sign({ _id: user._id, username }, process.env.SECRET_KEY, { expiresIn: '180s' });
+      const refreshToken = jwt.sign({ _id: user._id, username }, process.env.SECRET_KEY, { expiresIn: '365d' });
       
       // Save the token to the user's tokens array (for future validation or logout)
       user.tokens = user.tokens.concat({ token, refreshToken, issueDate: new Date() });
@@ -141,15 +153,15 @@ exports.refreshToken = (async (req, res, next) => {
 
   if (!user) if (!refreshToken) return res.status(403).json({ error: 'Refresh Token is missing' });
 
-  const newToken = jwt.sign({ _id: user._id }, process.env.SECRET_KEY, { expiresIn: '5s' });
+  const newToken = jwt.sign({ _id: user._id }, process.env.SECRET_KEY, { expiresIn: '30s' });
   const newRefreshToken = jwt.sign({ _id: user._id }, process.env.SECRET_KEY, { expiresIn: '90d' });
 
   return res.status(200).json({
       success: true,
       message: 'Here is your new token',
-      user,
       token: newToken,
-      newRefreshToken
+      newRefreshToken,
+      user,
   });
 });
 

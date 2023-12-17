@@ -10,6 +10,7 @@ router.post('/register', upload.single('image'), userController.registerUser);
 router.post('/login', userController.loginUser);
 router.post('/refresh-token', userController.refreshToken);
 router.get('/users', userController.getAllUsers);
+router.get('/user-photo/:id', userController.getUserPicture);
 router.put('/reset-password', userController.resetPassword);
 router.delete('/user-delete/:id', authMiddleware, userController.deleteUser);
 

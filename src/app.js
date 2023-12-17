@@ -30,14 +30,16 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
+const dbConnection = require('./configuration/db');
+const memoRoutes = require('./routes/memoRoutes');
 const userRoutes = require('./routes/userRoutes');
 const contactRoutes = require('./routes/contactRoutes');
-const memoRoutes = require('./routes/memoRoutes');
-const dbConnection = require('./models/db');
+const postRoutes = require('./routes/postRoutes');
 
+app.use(memoRoutes);
 app.use(userRoutes);
 app.use(contactRoutes);
-app.use(memoRoutes);
+app.use(postRoutes);
 
 app.listen(port, () => {
   dbConnection.on('error', console.error.bind(console, 'MongoDB connection error:'));
