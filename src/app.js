@@ -15,13 +15,14 @@ app.use((req, res, next) => {
     // res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3001');
     // res.setHeader('Access-Control-Allow-Origin', '*');
 
-    let allowedDomains = ['http://localhost:3001','*' ];
+    let allowedDomains = ['http://localhost:3001','https://aware-gold-drill.cyclic.app' ];
     let origin = req.headers.origin;
     
     if(allowedDomains.indexOf(origin) > -1){
       res.setHeader('Access-Control-Allow-Origin', origin);
     }
     res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Content-Type', 'application/json'); 
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
