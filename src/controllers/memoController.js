@@ -1,4 +1,4 @@
-const Memo = require('../models/memo');
+const Memo = require('../models/Memo');
 
 exports.getAllMemos = async (req, res) => {
   try {
