@@ -27,6 +27,7 @@ exports.albumUpload = async (req, res) => {
     const urls = [];
 
     for (const file of req.files) {
+      console.log(file);
       const newPath = await cloudinary.uploads(file.path, 'user-album');
       urls.push(newPath);
       fs.unlinkSync(file.path);
@@ -43,9 +44,15 @@ exports.albumUpload = async (req, res) => {
 
 exports.registerUser = async (req, res) => {
   try {
+    console.log('LOGIN: ', req.body);
+
     const user = { ...req.body };
     const existingUser = await User.findOne({ username: req.body.username });
     
+    if (!req.body.username || !req.body.password) {
+      return res.status(400).send({ error: 'Login credentials missing' });
+    }
+
     if (existingUser) {
       return res.status(400).send({ error: 'Username already exists. Please choose a different username.' });
     }
