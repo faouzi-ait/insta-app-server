@@ -44,17 +44,17 @@ exports.albumUpload = async (req, res) => {
 
 exports.registerUser = async (req, res) => {
   try {
-    console.log('LOGIN: ', req.body);
+    console.log('LOGIN: ', req.body.username);
+
+    if (!req.body.username || !req.body.password) {
+      return res.status(400).send({ error: 'Username and password are required' });
+    }
 
     const user = { ...req.body };
     const existingUser = await User.findOne({ username: req.body.username });
     
-    if (!req.body.username || !req.body.password) {
-      return res.status(400).send({ error: 'Login credentials missing' });
-    }
-
     if (existingUser) {
-      return res.status(400).send({ error: 'Username already exists. Please choose a different username.' });
+      return res.status(400).send({ error: 'Username already exists' });
     }
 
     // FILE UPLOAD FROM WEB
@@ -71,6 +71,30 @@ exports.registerUser = async (req, res) => {
     res.status(201).send(user);
   } catch (error) {
     res.status(400).send(error);
+  }
+};
+
+exports.updateUserPhoto = async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.user._id });
+    if (!user) return res.status(400).send({ error: 'The user could not be found' });
+
+    if (user.photo) {
+      await cloudinarySDK.uploader.destroy(user.publicId, 
+        (error, result) => console.log('Deleting current photo: ', user.photo)
+      );
+    }
+
+    const { url, id } = await cloudinary.uploads(req.file.path, 'single-upload');
+    user.photo = url;
+    user.publicId = id;
+    fs.unlinkSync(req.file.path);
+
+    await user.save({ validateBeforeSave: false });
+
+    return res.status(201).json({ success: true, url, id });
+  } catch (error) {
+    return res.status(400).send(error);
   }
 };
 
