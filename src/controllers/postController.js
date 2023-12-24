@@ -6,6 +6,27 @@ const paginate = require('./paginate');
 
 exports.listAllPosts = paginate(UserPost);
 
+exports.getPostInfos = async (req, res, next) => {
+    const postId = req.params.id;
+    
+    try {
+        const post = await UserPost.findById(postId);
+  
+        if (!post) return res.status(500).json({ success: false, message: 'User not found' })
+  
+        return res.status(200).json({ success: true, data: {
+            totalViews: post.totalViews,
+            totalReviews: post.totalReviews,
+            ratings: post.ratings,
+            likes: post.likes,
+            reviews: post.reviews,
+        } })
+    } 
+    catch (error) {
+        return res.status(500).json({ success: false, message: 'Internal Server Error', error });
+    }
+};
+
 exports.likePost = async (req, res, next) => {
     const userId = req.user._id;
     const postId = req.params.id;

@@ -11,7 +11,11 @@ const userSchema = new mongoose.Schema({
   images: { type: Array, required: false },
   photo:    { type: String, required: false },
   publicId: { type: String, required: false },
-  tokens:   { type: Array, required: false }
+  tokens:   { type: Array, required: false },
+  favorite: [{ 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'UserPost'
+}]
 });
 
 userSchema.pre('save', async function (next) {

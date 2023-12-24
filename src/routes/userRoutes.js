@@ -15,4 +15,8 @@ router.get('/user-photo/:id', userController.getUserPicture);
 router.put('/reset-password', userController.resetPassword);
 router.delete('/user-delete/:id', authMiddleware, userController.deleteUser);
 
+router.put('/user-likes/:id', authMiddleware, userController.favoritePost);
+router.get('/user-favorites', authMiddleware, userController.getUserFavorites);
+router.get('/user-contacts', authMiddleware, userController.getUserContacts);
+
 module.exports = router;
