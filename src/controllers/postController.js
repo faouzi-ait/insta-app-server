@@ -1,5 +1,6 @@
 const fs = require('fs');
 const UserPost = require('../models/UserPost');
+const User = require('../models/User');
 const cloudinary = require('../configuration/cloudinary');
 const cloudinarySDK = require('cloudinary');
 const paginate = require('./paginate');
@@ -49,6 +50,38 @@ exports.likePost = async (req, res, next) => {
         await post.save();
 
         return res.status(200).json({ success: true, liked: !alreadyLiked, message: 'Like status toggled successfully' })
+    } 
+    catch (error) {
+        return res.status(500).json({ success: false, message: 'Internal Server Error', error });
+    }
+};
+
+exports.favoritesPost = async (req, res, next) => {
+    const userId = req.user._id;
+    const postId = req.params.id;
+    
+    try {
+        const post = await UserPost.findById(postId);
+        // const user = await User.findById(userId);
+
+        if (!post) {
+            return res.status(500).json({ success: false, message: 'Post not found' });
+        }
+
+        const alreadyFavorited = post.favorites.includes(userId);
+
+        if (alreadyFavorited) {
+            post.favorites = post.favorites.filter((id) => id.toString() !== userId.toString());
+            // user.favorite = user.favorite.filter((id) => id.toString() !== postId.toString());
+        } else {
+            post.favorites.push(userId);
+            // user.favorite.push(postId);
+        }
+
+        await post.save();
+        // await user.save();
+
+        return res.status(200).json({ success: true, favorites: !alreadyFavorited, message: 'Favorites status toggled successfully' })
     } 
     catch (error) {
         return res.status(500).json({ success: false, message: 'Internal Server Error', error });

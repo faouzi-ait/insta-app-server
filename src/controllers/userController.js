@@ -8,7 +8,7 @@ const Contact = require('../models/Contact');
 
 const cloudinary = require('../configuration/cloudinary');
 
-exports.favoritePost = async (req, res, next) => {
+exports.userFavoritePost = async (req, res, next) => {
   const userId = req.user._id;
   const postId = req.params.id;
   
@@ -44,27 +44,27 @@ exports.getUserFavorites = async (req, res, next) => {
 
       if (!user) return res.status(500).json({ success: false, message: 'User not found' })
 
-      return res.status(200).json({ success: true, favorites: user.favorite })
+      return res.status(200).json({ success: true, favorite: user.favorite })
   } 
   catch (error) {
       return res.status(500).json({ success: false, message: 'Internal Server Error', error });
   }
 };
 
-exports.getUserContacts = async (req, res, next) => {
-  const userId = req.user._id;
+// exports.getUserFavorites = async (req, res, next) => {
+//   const userId = req.user._id;
   
-  try {
-      const user = await User.findById(userId);
+//   try {
+//       const user = await User.findById(userId);
 
-      if (!user) return res.status(500).json({ success: false, message: 'User not found' })
+//       if (!user) return res.status(500).json({ success: false, message: 'User not found' })
 
-      return res.status(200).json({ success: true, favorites: user.contacts })
-  } 
-  catch (error) {
-      return res.status(500).json({ success: false, message: 'Internal Server Error', error });
-  }
-};
+//       return res.status(200).json({ success: true, favorites: user.favorite })
+//   } 
+//   catch (error) {
+//       return res.status(500).json({ success: false, message: 'Internal Server Error', error });
+//   }
+// };
 
 exports.getUserPicture = async (req, res) => {
   try {

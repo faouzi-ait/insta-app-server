@@ -10,8 +10,9 @@ router.post('/new-post', authMiddleware, upload.single('image'), postController.
 router.get('/listing-posts', postController.listAllPosts);
 router.get('/post-data/:id', postController.getPostInfos);
 router.get('/single-post/:id', postController.findSinglePost);
-router.get('/viewed-post/:id', postController.updatePostView);
+router.post('/viewed-post/:id', postController.updatePostView);
 router.post('/like-post/:id', authMiddleware, postController.likePost);
+router.post('/favorite-post/:id', authMiddleware, postController.favoritesPost);
 router.delete('/delete-posts/:id', authMiddleware, postController.deleteSinglePost);
 
 router.get('/reviews', reviewController.getReviews);

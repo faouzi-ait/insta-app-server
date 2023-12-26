@@ -37,6 +37,10 @@ const UserPost = mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId, 
             ref: 'User' 
         }],
+        favorites: [{ 
+            type: mongoose.Schema.Types.ObjectId, 
+            ref: 'User' 
+        }],
         ratings: {
             type: Number,
             default: 0
