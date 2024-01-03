@@ -40,7 +40,7 @@ exports.createProductReview = async (req, res, next) => {
         const newReview = {
             user: req.user._id,
             username: req.user.username,
-            rating: Number(rating),
+            rating: Number(rating) || 0,
             comment
         };
 

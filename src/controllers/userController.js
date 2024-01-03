@@ -78,6 +78,20 @@ exports.getUserPicture = async (req, res) => {
   }
 };
 
+exports.getUser = async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.params.id });
+
+    if (!user) return res.status(400).json({ success: false, message: 'The user was not found' });
+    
+    return res.status(200).json({ 
+      user
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'An error has occured', error });
+  }
+};
+
 exports.albumUpload = async (req, res) => {
   
   try {
