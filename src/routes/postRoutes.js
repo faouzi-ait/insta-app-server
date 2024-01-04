@@ -8,6 +8,7 @@ const authMiddleware = require('../middleware/authMiddleware');
 
 router.post('/new-post', authMiddleware, upload.single('image'), postController.createPost);
 router.get('/listing-posts', postController.listAllPosts);
+router.get('/q?', postController.searchPosts);
 router.get('/post-data/:id', postController.getPostInfos);
 router.get('/single-post/:id', postController.findSinglePost);
 router.post('/viewed-post/:id', postController.updatePostView);

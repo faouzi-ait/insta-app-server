@@ -7,6 +7,22 @@ const paginate = require('./paginate');
 
 exports.listAllPosts = paginate(UserPost);
 
+exports.searchPosts = async (req, res) => {
+    try {
+        const searchString = decodeURIComponent(req.query.q);
+        const searchTerms = searchString.split(/\s+/);
+
+        const orConditions = searchTerms.map(term => ({ post: new RegExp(term, 'i') }));
+    
+        const posts = await UserPost.find({ $or: orConditions });
+    
+        return res.json({ success: true, posts });
+      } catch (error) {
+        console.error('Error searching posts:', error);
+        return res.status(500).json({ success: false, error: 'Internal server error' });
+      }
+}
+
 exports.getPostInfos = async (req, res, next) => {
     const postId = req.params.id;
     
