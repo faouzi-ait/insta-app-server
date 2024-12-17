@@ -15,7 +15,11 @@ const userSchema = new mongoose.Schema({
   favorite: [{ 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'UserPost'
-}]
+  }],
+  posts: [{ 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'UserPost'
+  }]
 });
 
 userSchema.pre('save', async function (next) {

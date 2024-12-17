@@ -51,21 +51,6 @@ exports.getUserFavorites = async (req, res, next) => {
   }
 };
 
-// exports.getUserFavorites = async (req, res, next) => {
-//   const userId = req.user._id;
-  
-//   try {
-//       const user = await User.findById(userId);
-
-//       if (!user) return res.status(500).json({ success: false, message: 'User not found' })
-
-//       return res.status(200).json({ success: true, favorites: user.favorite })
-//   } 
-//   catch (error) {
-//       return res.status(500).json({ success: false, message: 'Internal Server Error', error });
-//   }
-// };
-
 exports.getUserPicture = async (req, res) => {
   try {
     const user = await User.findOne({ _id: req.params.id });
@@ -89,6 +74,18 @@ exports.getUser = async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'An error has occured', error });
+  }
+};
+
+exports.updateUserDetails = async (req, res) => {
+  const { firstname, lastname, phone } = req.body;
+  
+  try {
+    await User.updateOne({ _id: req.user._id }, { $set: { firstname, lastname, phone } }, { validateBeforeSave: false });
+    
+    res.status(200).json({ message: 'User details updated successfully' });
+  } catch (error) {
+    res.status(500).json({ error });
   }
 };
 
@@ -232,7 +229,7 @@ exports.loginUser = async (req, res) => {
       }
   
       // Generate JWT tokens
-      const token = jwt.sign({ _id: user._id, username }, process.env.SECRET_KEY, { expiresIn: '180s' });
+      const token = jwt.sign({ _id: user._id, username }, process.env.SECRET_KEY, { expiresIn: '10s' });
       const refreshToken = jwt.sign({ _id: user._id, username }, process.env.SECRET_KEY, { expiresIn: '365d' });
       
       // Save the token to the user's tokens array (for future validation or logout)

@@ -5,6 +5,8 @@ const cloudinary = require('../configuration/cloudinary');
 const cloudinarySDK = require('cloudinary');
 const paginate = require('./paginate');
 
+
+
 exports.listAllPosts = paginate(UserPost);
 
 exports.searchPosts = async (req, res) => {
@@ -13,8 +15,9 @@ exports.searchPosts = async (req, res) => {
         const searchTerms = searchString.split(/\s+/);
 
         const orConditions = searchTerms.map(term => ({ post: new RegExp(term, 'i') }));
-    
+        console.log(orConditions)
         const posts = await UserPost.find({ $or: orConditions });
+        console.log(posts)
     
         return res.json({ success: true, posts });
       } catch (error) {
@@ -78,7 +81,6 @@ exports.favoritesPost = async (req, res, next) => {
     
     try {
         const post = await UserPost.findById(postId);
-        // const user = await User.findById(userId);
 
         if (!post) {
             return res.status(500).json({ success: false, message: 'Post not found' });
@@ -88,16 +90,31 @@ exports.favoritesPost = async (req, res, next) => {
 
         if (alreadyFavorited) {
             post.favorites = post.favorites.filter((id) => id.toString() !== userId.toString());
-            // user.favorite = user.favorite.filter((id) => id.toString() !== postId.toString());
         } else {
             post.favorites.push(userId);
-            // user.favorite.push(postId);
         }
 
         await post.save();
-        // await user.save();
 
         return res.status(200).json({ success: true, favorites: !alreadyFavorited, message: 'Favorites status toggled successfully' })
+    } 
+    catch (error) {
+        return res.status(500).json({ success: false, message: 'Internal Server Error', error });
+    }
+};
+
+
+exports.getLikesAndFavoritesPost = async (req, res, next) => {
+    const userId = req.user._id;
+    
+    try {
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(500).json({ success: false, message: 'User not found' });
+        }
+
+        return res.status(200).json({ success: true, favorites: user.favorite, posts: user.posts })
     } 
     catch (error) {
         return res.status(500).json({ success: false, message: 'Internal Server Error', error });
@@ -111,16 +128,18 @@ exports.createPost = async (req, res) => {
             post: req.body.post
         };
         
-        if (req.file) {
-            const { url, id } = await cloudinary.uploads(req.file.path, 'single-upload');
+        const user = await User.findById(req.user._id);
+        const { url, id } = await cloudinary.uploads(req.file.path, 'single-upload');
 
-            item.photo = url;
-            item.publicId = id;
-            fs.unlinkSync(req.file.path);
-        }   
+        item.photo = url;
+        item.publicId = id;
+        fs.unlinkSync(req.file.path);
     
         const newPost = new UserPost(item);
+        user.posts.push(newPost._id);
+
         await newPost.save(); 
+        await user.save(); 
 
         return res.status(201).json({ success: true, message: 'Post created successfully', newPost });
     } catch (error) {
@@ -159,9 +178,6 @@ exports.deleteSinglePost = async (req, res, next) => {
     
         if(user && user.publicId) {
           // await cloudinarySDK.v2.api.delete_resources([['image1', 'image2']], 
-          //   (error, result) => console.log('Deletion in progress => ')
-          // );
-    
           await cloudinarySDK.uploader.destroy(user.publicId, 
             (error, result) => console.log('Deletion in progress => ')
           );
